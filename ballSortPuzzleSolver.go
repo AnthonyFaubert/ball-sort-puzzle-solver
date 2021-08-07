@@ -3,14 +3,15 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"hash/maphash"
 	"encoding/binary"
 )
 
 const (
 	TUBE_CAPACITY = 5
-	NUM_TUBES = 15
 	RECURSION_LIMIT = 2000
+	DEBUG = false
 )
 
 const (
@@ -35,24 +36,60 @@ var SET struct{}
 var GameStateHashSeed maphash.Seed
 
 type GameState [][]int8
-func (a GameState) hash() uint64 {
+func (state GameState) copy() GameState {
+	cop := make(GameState, len(state))
+	for i := 0; i < len(state); i++ {
+		cop[i] = make([]int8, len(state[i]), TUBE_CAPACITY)
+		copy(cop[i], state[i])
+
+	}
+	return cop
+}
+
+func (state GameState) hash() uint64 {
 	if (BALL_MAX > 15) || (TUBE_CAPACITY > 8) {
 		panic("change the hash function")
 	}
 	// < 16 colors, so 4 bits per color
-
 	var h maphash.Hash
 	h.SetSeed(GameStateHashSeed)
-	for i := 0; i < NUM_TUBES; i++ {
+
+	// Sort the tubes so that ordering of tubes doesn't affect our check for if we've seen this state before or not.
+	sorted := state.copy()
+	sort.Slice(sorted, func(left, right int) bool {
+		lTube := sorted[left]
+		rTube := sorted[right]
+		for k := 0; k < TUBE_CAPACITY; k++ {
+			if len(rTube) <= k {
+				return true
+			} else if len(lTube) <= k {
+				return false
+			} else if lTube[k] != rTube[k] {
+				return lTube[k] > rTube[k]
+			}
+		}
+		return false
+	})
+	
+	for i := 0; i < len(state); i++ {
 		buf := make([]byte, 4)
-		th := tubeHash(a[i])
-		//fmt.Printf("%05x ", th)
-		binary.LittleEndian.PutUint32(buf, th)
+		binary.LittleEndian.PutUint32(buf, tubeHash(sorted[i]))
 		h.Write(buf)
 	}
-	s := h.Sum64()
-	//fmt.Printf("%016x\n", s)
-	return s
+	return h.Sum64()
+}
+
+func (state GameState) Print(prefix string) {
+	for i := 0; i < len(state); i++ {
+		fmt.Printf("%s%2d: ", prefix, i)
+		for j := 0; j < len(state[i]); j++ {
+			if j != 0 {
+				fmt.Print(", ")
+			}
+			fmt.Printf("%2d", state[i][j])
+		}
+		fmt.Println()
+	}
 }
 
 func tubeHash(tube []int8) (h uint32) {
@@ -68,6 +105,10 @@ func tubeHash(tube []int8) (h uint32) {
 
 type GameMove struct {
 	fromTube, toTube int
+}
+type ScoredGameMove struct {
+	GameMove
+	score int
 }
 
 
@@ -97,6 +138,51 @@ func availableMoves(state GameState) map[GameMove]struct{} {
 	return moves
 }
 
+func prioritizeMoves(state GameState, moveSet map[GameMove]struct{}) []GameMove {
+	moves := make([]ScoredGameMove, len(moveSet))
+	// If the tube only contains 1 color, the score is the number of balls in the tube.
+	// Cache scores in tubeScores so you don't have to recompute them.
+	tubeScores := make(map[int]int)
+	scoreTube := func(tube int) int {
+		score, alreadyScored := tubeScores[tube]
+		if !alreadyScored {
+			if len(state[tube]) > 0 {
+				// If all the colors are the same, the score is the number of balls
+				score = len(state[tube])
+				// Reset score if they're not the same
+				for i := 1; i < len(state[tube]); i++ {
+					if state[tube][i] != state[tube][0] {
+						score = 0
+						break
+					}
+				}
+			}
+			tubeScores[tube] = score
+		}
+		return score
+	}
+		
+	i := 0
+	for move := range moveSet {
+		score := scoreTube(move.toTube)
+		if scoreTube(move.fromTube) > score {
+			score = -(TUBE_CAPACITY + 1)
+		}
+		moves[i] = ScoredGameMove{move, score}
+		i++
+	}
+	sort.Slice(moves, func(i, j int) bool {
+		return moves[i].score > moves[j].score
+	})
+
+	result := make([]GameMove, len(moves), len(moves))
+	for i := 0; i < len(moves); i++ {
+		result[i].fromTube = moves[i].fromTube
+		result[i].toTube = moves[i].toTube
+	}
+	return result
+}
+
 func isSolved(state GameState) bool {
 	for i := 0; i < len(state); i++ {
 		tube := state[i]
@@ -121,7 +207,7 @@ func removeTopBall(tube []int8) []int8 {
 }
 
 func makeMove(oldState GameState, move GameMove) GameState {
-	state := make(GameState, NUM_TUBES)
+	state := make(GameState, len(oldState))
 	for i := 0; i < cap(state); i++ {
 		length := len(oldState[i])
 		if i == move.toTube {
@@ -140,20 +226,31 @@ func makeMove(oldState GameState, move GameMove) GameState {
 }
 
 func solve(state GameState, seenStates map[uint64]struct{}, recursionDepth int) ([]GameMove, int) {
+	if isSolved(state) {
+		fmt.Println("ERROR: Already solved!")
+	}
 	seenStates[state.hash()] = SET
 	moves := availableMoves(state)
 	if recursionDepth > RECURSION_LIMIT {
-		panic(fmt.Sprintf("Recursed deeper than %d.", RECURSION_LIMIT))
+		fmt.Printf("FATAL: Recursed deeper than %d.\nState:", RECURSION_LIMIT)
+		state.Print("  ")
+		fmt.Println("Available moves:")
+		for move := range moves {
+			fmt.Printf("  %2d to %2d\n", move.fromTube, move.toTube)
+		}
+		panic("RECURSION_LIMIT exceeded.")
 	}
 	deepest := recursionDepth
-	for move := range moves {
+	for _, move := range prioritizeMoves(state, moves) {
 		newState := makeMove(state, move)
 		if _, newStateIsOld := seenStates[newState.hash()]; !newStateIsOld {
 			if isSolved(newState) {
 				fmt.Println("Found valid solution.")
 				return []GameMove{move}, recursionDepth
 			} else {
-				fmt.Printf("%02d (%016x %%#v) Move from %d to %d\n", recursionDepth, newState.hash(), /*newState,*/ move.fromTube, move.toTube)
+				if DEBUG {
+					fmt.Printf("%02d Move from %d to %d\n", recursionDepth, move.fromTube, move.toTube)
+				}
 				solution, childDepth := solve(newState, seenStates, recursionDepth + 1)
 				if len(solution) > 0 {
 					return append([]GameMove{move}, solution...), childDepth // [move] + solution
