@@ -10,6 +10,7 @@ import (
 const (
 	TUBE_CAPACITY = 5
 	NUM_TUBES = 15
+	RECURSION_LIMIT = 2000
 )
 
 const (
@@ -138,32 +139,32 @@ func makeMove(oldState GameState, move GameMove) GameState {
 	return state
 }
 
-var maxRD int
-func solve(state GameState, seenStates map[uint64]struct{}, recursionDepth int) []GameMove {
+func solve(state GameState, seenStates map[uint64]struct{}, recursionDepth int) ([]GameMove, int) {
+	seenStates[state.hash()] = SET
 	moves := availableMoves(state)
-	if recursionDepth > 2000 {
-		panic("recursed over 2000")
+	if recursionDepth > RECURSION_LIMIT {
+		panic(fmt.Sprintf("Recursed deeper than %d.", RECURSION_LIMIT))
 	}
-	if recursionDepth > maxRD {
-		maxRD = recursionDepth
-	}
+	deepest := recursionDepth
 	for move := range moves {
 		newState := makeMove(state, move)
 		if _, newStateIsOld := seenStates[newState.hash()]; !newStateIsOld {
-			seenStates[newState.hash()] = SET
 			if isSolved(newState) {
 				fmt.Println("Found valid solution.")
-				return []GameMove{move}
+				return []GameMove{move}, recursionDepth
 			} else {
-				//fmt.Printf("%02d (%016x %#v) Move from %d to %d\n", recursionDepth, newState.hash(), newState, move.fromTube, move.toTube)
-				solution := solve(newState, seenStates, recursionDepth + 1)
+				fmt.Printf("%02d (%016x %%#v) Move from %d to %d\n", recursionDepth, newState.hash(), /*newState,*/ move.fromTube, move.toTube)
+				solution, childDepth := solve(newState, seenStates, recursionDepth + 1)
 				if len(solution) > 0 {
-					return append([]GameMove{move}, solution...) // [move] + solution
+					return append([]GameMove{move}, solution...), childDepth // [move] + solution
+				}
+				if childDepth > deepest {
+					deepest = childDepth
 				}
 			}
 		}
 	}
-	return make([]GameMove, 0)
+	return make([]GameMove, 0), deepest
 }
 
 func test() {
@@ -215,33 +216,34 @@ func main() {
 	GameStateHashSeed = maphash.MakeSeed()
 	test()
 	
-	seenStates := make(map[uint64]struct{})
-	currentState := make(GameState, NUM_TUBES)
-	currentState[0] = []int8{BALL_DRKGREEN, BALL_YELLOW, BALL_BROWN, BALL_DRKBLUE, BALL_RED}
-	currentState[1] = []int8{BALL_DRKGREEN, BALL_TAN, BALL_ORANGE, BALL_RED, BALL_GREEN}
-	currentState[2] = []int8{BALL_TEAL, BALL_PURPLE, BALL_DRKBLUE, BALL_GREEN, BALL_WHITE}
-	currentState[3] = []int8{BALL_DRKBLUE, BALL_YELLOW, BALL_RED, BALL_YELLOW, BALL_BLUE}
-	currentState[4] = []int8{BALL_DRKGREEN, BALL_BLUE, BALL_PURPLE, BALL_RED, BALL_ORANGE}
-	currentState[5] = []int8{BALL_ORANGE, BALL_PINK, BALL_TEAL, BALL_TAN, BALL_DRKGREEN}
-	currentState[6] = []int8{BALL_BLUE, BALL_YELLOW, BALL_BLUE, BALL_PINK, BALL_WHITE}
-	currentState[7] = []int8{BALL_ORANGE, BALL_TEAL, BALL_RED, BALL_PINK, BALL_GREEN}
-	currentState[8] = []int8{BALL_BROWN, BALL_TAN, BALL_WHITE, BALL_PINK, BALL_BROWN}
-	currentState[9] = []int8{BALL_TAN, BALL_DRKBLUE, BALL_GREEN, BALL_GREEN, BALL_DRKGREEN}
-	currentState[10] = []int8{BALL_ORANGE, BALL_TAN, BALL_YELLOW, BALL_PURPLE, BALL_TEAL}
-	currentState[11] = []int8{BALL_PURPLE, BALL_PINK, BALL_BROWN, BALL_BROWN, BALL_WHITE}
-	currentState[12] = []int8{BALL_TEAL, BALL_BLUE, BALL_WHITE, BALL_DRKBLUE, BALL_PURPLE}
-	currentState[13] = make([]int8, 0, TUBE_CAPACITY)
-	currentState[14] = make([]int8, 0, TUBE_CAPACITY)
-	seenStates[currentState.hash()] = SET
+	level578 := GameState{
+		[]int8{BALL_DRKGREEN, BALL_YELLOW, BALL_BROWN, BALL_DRKBLUE, BALL_RED},
+		[]int8{BALL_DRKGREEN, BALL_TAN, BALL_ORANGE, BALL_RED, BALL_GREEN},
+		[]int8{BALL_TEAL, BALL_PURPLE, BALL_DRKBLUE, BALL_GREEN, BALL_WHITE},
+		[]int8{BALL_DRKBLUE, BALL_YELLOW, BALL_RED, BALL_YELLOW, BALL_BLUE},
+		[]int8{BALL_DRKGREEN, BALL_BLUE, BALL_PURPLE, BALL_RED, BALL_ORANGE},
+		[]int8{BALL_ORANGE, BALL_PINK, BALL_TEAL, BALL_TAN, BALL_DRKGREEN},
+		[]int8{BALL_BLUE, BALL_YELLOW, BALL_BLUE, BALL_PINK, BALL_WHITE},
+		[]int8{BALL_ORANGE, BALL_TEAL, BALL_RED, BALL_PINK, BALL_GREEN},
+		[]int8{BALL_BROWN, BALL_TAN, BALL_WHITE, BALL_PINK, BALL_BROWN},
+		[]int8{BALL_TAN, BALL_DRKBLUE, BALL_GREEN, BALL_GREEN, BALL_DRKGREEN},
+		[]int8{BALL_ORANGE, BALL_TAN, BALL_YELLOW, BALL_PURPLE, BALL_TEAL},
+		[]int8{BALL_PURPLE, BALL_PINK, BALL_BROWN, BALL_BROWN, BALL_WHITE},
+		[]int8{BALL_TEAL, BALL_BLUE, BALL_WHITE, BALL_DRKBLUE, BALL_PURPLE},
+		make([]int8, 0, TUBE_CAPACITY),
+		make([]int8, 0, TUBE_CAPACITY),
+		//make([]int8, 0, TUBE_CAPACITY), // Joci solved it with this additional tube.
+	}
 
+	seenStates := make(map[uint64]struct{})
 	fmt.Println("Solving...")
-	solution := solve(currentState, seenStates, 0)
+	solution, deepestRecursion := solve(level578, seenStates, 0)
 	if len(solution) == 0 {
 		fmt.Println("No solution!")
 	} else {
 		fmt.Printf("Solved! Number of moves: %d.\n", len(solution))
 	}
-	fmt.Printf("Deepest recursion: %d. Number of unique game states: %d.\n", maxRD, len(seenStates))
+	fmt.Printf("Deepest recursion: %d. Number of unique game states: %d.\n", deepestRecursion, len(seenStates))
 	for _, move := range solution {
 		fmt.Printf("Move from %d to %d.\n", move.fromTube, move.toTube)
 	}
