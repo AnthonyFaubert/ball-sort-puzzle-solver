@@ -23,13 +23,13 @@ const (
 	BALL_DRKBLUE = iota
 	BALL_TEAL = iota
 	BALL_PURPLE = iota
-	BALL_PINK = iota	
+	BALL_PINK = iota
 	BALL_ORANGE = iota
 	BALL_YELLOW = iota
 	BALL_TAN = iota
 	BALL_BROWN = iota
-	BALL_WHITE = iota
 	BALL_NAVY = iota
+	BALL_WHITE = iota
 	BALL_MAX = BALL_WHITE
 )
 
@@ -71,7 +71,7 @@ func (state GameState) hash() uint64 {
 		}
 		return false
 	})
-	
+
 	for i := 0; i < len(state); i++ {
 		buf := make([]byte, 4)
 		binary.LittleEndian.PutUint32(buf, tubeHash(sorted[i]))
@@ -162,7 +162,7 @@ func prioritizeMoves(state GameState, moveSet map[GameMove]struct{}) []GameMove 
 		}
 		return score
 	}
-		
+
 	i := 0
 	for move := range moveSet {
 		score := scoreTube(move.toTube)
@@ -298,7 +298,7 @@ func test() {
 	}
 
 	//fmt.Print("Hashing A: ")
-	ah := a.hash()	
+	ah := a.hash()
 	//fmt.Print("Hashing B: ")
 	bh := b.hash()
 	//fmt.Print("Hashing C: ")
@@ -313,25 +313,26 @@ func test() {
 func main() {
 	GameStateHashSeed = maphash.MakeSeed()
 	test()
-	
+
 	level578 := GameState{
-		[]int8{BALL_DRKGREEN, BALL_YELLOW, BALL_BROWN, BALL_DRKBLUE, BALL_RED},
-		[]int8{BALL_DRKGREEN, BALL_TAN, BALL_ORANGE, BALL_RED, BALL_GREEN},
-		[]int8{BALL_TEAL, BALL_PURPLE, BALL_DRKBLUE, BALL_GREEN, BALL_WHITE},
-		[]int8{BALL_DRKBLUE, BALL_YELLOW, BALL_RED, BALL_YELLOW, BALL_BLUE},
+		[]int8{BALL_DRKGREEN, BALL_YELLOW, BALL_BROWN, BALL_DRKBLUE, BALL_RED}, // tube 0
+		[]int8{BALL_DRKGREEN, BALL_TAN, BALL_ORANGE, BALL_RED, BALL_GREEN},     // tube 1
+		[]int8{BALL_TEAL, BALL_PURPLE, BALL_DRKBLUE, BALL_GREEN, BALL_WHITE},   // tube 2
+		[]int8{BALL_DRKBLUE, BALL_YELLOW, BALL_RED, BALL_YELLOW, BALL_BLUE},    // ...
 		[]int8{BALL_DRKGREEN, BALL_BLUE, BALL_PURPLE, BALL_RED, BALL_ORANGE},
 		[]int8{BALL_ORANGE, BALL_PINK, BALL_TEAL, BALL_TAN, BALL_DRKGREEN},
 		[]int8{BALL_BLUE, BALL_YELLOW, BALL_BLUE, BALL_PINK, BALL_WHITE},
-		[]int8{BALL_ORANGE, BALL_TEAL, BALL_RED, BALL_PINK, BALL_GREEN},
+		[]int8{BALL_ORANGE, BALL_TEAL, BALL_RED, BALL_PINK, BALL_GREEN},        // tube 7
 
-		[]int8{BALL_BROWN, BALL_TAN, BALL_WHITE, BALL_PINK, BALL_BROWN},
-		[]int8{BALL_TAN, BALL_DRKBLUE, BALL_GREEN, BALL_GREEN, BALL_DRKGREEN},
+		[]int8{BALL_BROWN, BALL_TAN, BALL_WHITE, BALL_PINK, BALL_BROWN},        // tube 8
+		[]int8{BALL_TAN, BALL_DRKBLUE, BALL_GREEN, BALL_GREEN, BALL_DRKGREEN},  // ...
 		[]int8{BALL_ORANGE, BALL_TAN, BALL_YELLOW, BALL_PURPLE, BALL_TEAL},
 		[]int8{BALL_PURPLE, BALL_PINK, BALL_BROWN, BALL_BROWN, BALL_WHITE},
-		[]int8{BALL_TEAL, BALL_BLUE, BALL_WHITE, BALL_DRKBLUE, BALL_PURPLE},
-		make([]int8, 0, TUBE_CAPACITY),
-		make([]int8, 0, TUBE_CAPACITY),
-		make([]int8, 0, TUBE_CAPACITY), // Joci solved it with this additional tube.
+		[]int8{BALL_TEAL, BALL_BLUE, BALL_WHITE, BALL_DRKBLUE, BALL_PURPLE},    // tube 12
+		make([]int8, 0, TUBE_CAPACITY),					        // tube 13
+		make([]int8, 0, TUBE_CAPACITY),					        // tube 14
+		make([]int8, 0, TUBE_CAPACITY),                                         // tube 15 (the extra tube from tapping the "+1 tube" button)
+		// This level has no solution without the additional tube (tube 15).
 	}
 
 	level656 := GameState{
@@ -351,7 +352,8 @@ func main() {
 		[]int8{BALL_PURPLE, BALL_GREEN, BALL_PURPLE, BALL_TAN, BALL_RED},
 		[]int8{BALL_NAVY, BALL_DRKGREEN, BALL_PURPLE, BALL_YELLOW, BALL_PURPLE},
 		make([]int8, 0, TUBE_CAPACITY),
-		make([]int8, 0, TUBE_CAPACITY), // Joci solved it with this additional tube.
+		make([]int8, 0, TUBE_CAPACITY),
+		// No additional tube needed to solve.
 	}
 
 	seenStates := make(map[uint64]struct{})
