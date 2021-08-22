@@ -29,6 +29,7 @@ const (
 	BALL_TAN = iota
 	BALL_BROWN = iota
 	BALL_WHITE = iota
+	BALL_NAVY = iota
 	BALL_MAX = BALL_WHITE
 )
 
@@ -322,6 +323,7 @@ func main() {
 		[]int8{BALL_ORANGE, BALL_PINK, BALL_TEAL, BALL_TAN, BALL_DRKGREEN},
 		[]int8{BALL_BLUE, BALL_YELLOW, BALL_BLUE, BALL_PINK, BALL_WHITE},
 		[]int8{BALL_ORANGE, BALL_TEAL, BALL_RED, BALL_PINK, BALL_GREEN},
+
 		[]int8{BALL_BROWN, BALL_TAN, BALL_WHITE, BALL_PINK, BALL_BROWN},
 		[]int8{BALL_TAN, BALL_DRKBLUE, BALL_GREEN, BALL_GREEN, BALL_DRKGREEN},
 		[]int8{BALL_ORANGE, BALL_TAN, BALL_YELLOW, BALL_PURPLE, BALL_TEAL},
@@ -329,12 +331,33 @@ func main() {
 		[]int8{BALL_TEAL, BALL_BLUE, BALL_WHITE, BALL_DRKBLUE, BALL_PURPLE},
 		make([]int8, 0, TUBE_CAPACITY),
 		make([]int8, 0, TUBE_CAPACITY),
-		//make([]int8, 0, TUBE_CAPACITY), // Joci solved it with this additional tube.
+		make([]int8, 0, TUBE_CAPACITY), // Joci solved it with this additional tube.
+	}
+
+	level656 := GameState{
+		[]int8{BALL_RED, BALL_BROWN, BALL_RED, BALL_DRKBLUE, BALL_DRKBLUE},
+		[]int8{BALL_TAN, BALL_TEAL, BALL_PINK, BALL_RED, BALL_TAN},
+		[]int8{BALL_YELLOW, BALL_GREEN, BALL_GREEN, BALL_YELLOW, BALL_PINK},
+		[]int8{BALL_DRKBLUE, BALL_WHITE, BALL_PURPLE, BALL_NAVY, BALL_TEAL},
+		[]int8{BALL_WHITE, BALL_BLUE, BALL_TAN, BALL_BLUE, BALL_PINK},
+		[]int8{BALL_NAVY, BALL_ORANGE, BALL_BROWN, BALL_TAN, BALL_BLUE},
+		[]int8{BALL_BROWN, BALL_WHITE, BALL_DRKGREEN, BALL_BROWN, BALL_PINK},
+		[]int8{BALL_YELLOW, BALL_GREEN, BALL_NAVY, BALL_ORANGE, BALL_BLUE},
+
+		[]int8{BALL_YELLOW, BALL_WHITE, BALL_NAVY, BALL_BLUE, BALL_ORANGE},
+		[]int8{BALL_DRKBLUE, BALL_ORANGE, BALL_DRKGREEN, BALL_BROWN, BALL_TEAL},
+		[]int8{BALL_DRKGREEN, BALL_TEAL, BALL_WHITE, BALL_RED, BALL_DRKGREEN},
+		[]int8{BALL_TEAL, BALL_ORANGE, BALL_PINK, BALL_DRKBLUE, BALL_GREEN},
+		[]int8{BALL_PURPLE, BALL_GREEN, BALL_PURPLE, BALL_TAN, BALL_RED},
+		[]int8{BALL_NAVY, BALL_DRKGREEN, BALL_PURPLE, BALL_YELLOW, BALL_PURPLE},
+		make([]int8, 0, TUBE_CAPACITY),
+		make([]int8, 0, TUBE_CAPACITY), // Joci solved it with this additional tube.
 	}
 
 	seenStates := make(map[uint64]struct{})
 	fmt.Println("Solving...")
-	solution, deepestRecursion := solve(level578, seenStates, 0)
+	_ = level578
+	solution, deepestRecursion := solve(level656, seenStates, 0)
 	if len(solution) == 0 {
 		fmt.Println("No solution!")
 	} else {
