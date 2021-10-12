@@ -93,6 +93,22 @@ func (state GameState) Print(prefix string) {
 	}
 }
 
+// Counts the occurances of each color and makes sure you have 5 of each. Returns BALL_NONE if passed, or the problem color if failed.
+func (state GameState) CheckValid() int8 {
+	colorCounts := make(map[int8]int)
+	for _, tube := range state {
+		for _, color := range tube {
+			colorCounts[color]++
+		}
+	}
+	for color, count := range colorCounts {
+		if count != TUBE_CAPACITY {
+			return color
+		}
+	}
+	return BALL_NONE
+}
+
 func tubeHash(tube []int8) (h uint32) {
 	for i := 0; i < TUBE_CAPACITY; i++ {
 		ball := BALL_NONE
@@ -293,6 +309,9 @@ func test() {
 		[]int8{},
 		[]int8{},
 	}
+	if solved.CheckValid() != BALL_NONE {
+		panic("CheckValid() is bad")
+	}
 	if !isSolved(solved) {
 		panic("isSolved() is bad")
 	}
@@ -334,6 +353,7 @@ func main() {
 		make([]int8, 0, TUBE_CAPACITY),                                         // tube 15 (the extra tube from tapping the "+1 tube" button)
 		// This level has no solution without the additional tube (tube 15).
 	}
+	if level578.CheckValid() != BALL_NONE { panic("level578 invalid") }
 
 	level656 := GameState{
 		[]int8{BALL_RED, BALL_BROWN, BALL_RED, BALL_DRKBLUE, BALL_DRKBLUE},
@@ -355,6 +375,28 @@ func main() {
 		make([]int8, 0, TUBE_CAPACITY),
 		// No additional tube needed to solve.
 	}
+	if level656.CheckValid() != BALL_NONE { panic("level656 invalid") }
+
+	level732 := GameState{
+		[]int8{BALL_PINK,    BALL_RED,    BALL_BROWN,  BALL_BLUE,    BALL_GREEN},
+		[]int8{BALL_PURPLE,  BALL_ORANGE, BALL_WHITE,  BALL_ORANGE,  BALL_GREEN},
+		[]int8{BALL_RED,     BALL_BROWN,  BALL_PURPLE, BALL_DRKGREEN,BALL_BLUE},
+		[]int8{BALL_DRKGREEN,BALL_PINK,   BALL_YELLOW, BALL_BROWN,   BALL_ORANGE},
+		[]int8{BALL_NAVY,    BALL_YELLOW, BALL_RED,    BALL_BROWN,   BALL_PURPLE},
+		[]int8{BALL_BLUE,    BALL_DRKBLUE,BALL_TAN,    BALL_DRKBLUE, BALL_TEAL},
+		[]int8{BALL_BLUE,    BALL_GREEN,  BALL_NAVY,   BALL_TAN,     BALL_WHITE},
+		[]int8{BALL_WHITE,   BALL_NAVY,   BALL_TEAL,   BALL_DRKGREEN,BALL_DRKGREEN},
+
+		[]int8{BALL_DRKGREEN,BALL_NAVY,   BALL_DRKBLUE,BALL_DRKBLUE, BALL_RED},
+		[]int8{BALL_NAVY,    BALL_TEAL,   BALL_GREEN,  BALL_PINK,    BALL_PURPLE},
+		[]int8{BALL_PURPLE,  BALL_TEAL,   BALL_ORANGE, BALL_TAN,     BALL_ORANGE},
+		[]int8{BALL_GREEN,   BALL_YELLOW, BALL_BLUE,   BALL_RED,     BALL_PINK},
+		[]int8{BALL_YELLOW,  BALL_YELLOW, BALL_BROWN,  BALL_TEAL,    BALL_WHITE},
+		[]int8{BALL_TAN,     BALL_DRKBLUE,BALL_WHITE,  BALL_TAN,     BALL_PINK},
+		make([]int8, 0, TUBE_CAPACITY),
+		make([]int8, 0, TUBE_CAPACITY),
+	}
+	if level732.CheckValid() != BALL_NONE { panic("level732 invalid") }
 
 	seenStates := make(map[uint64]struct{})
 	fmt.Println("Solving...")
