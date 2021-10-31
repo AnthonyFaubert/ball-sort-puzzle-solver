@@ -33,7 +33,7 @@ That's the GameState representation of this initial game board:
 The bottom ball in a tube is the 0th ball in the corresponding tube list. The tubes are numbered as shown in the image and comments.
 
 # Adding a new level and solving it:
-1. Copy either of the existing GameState variable declarations (`level578` or `level656`) and change all the balls/tubes to match what you've got in the game right now.
+1. Copy any of the existing GameState variable declarations (`level578` or `level656` or `level732` or `level764`) and change all the balls/tubes to match what you've got in the game right now.
 Any partially-full tube lists need to be padded out with BALL_NONE values where there's an empty space.
 2. Change the `solution, deepestRecursion := solve(level656, seenStates, 0)` line to use your new GameState variable.
 3. Run it with `go run ballSortPuzzleSolver.go`
