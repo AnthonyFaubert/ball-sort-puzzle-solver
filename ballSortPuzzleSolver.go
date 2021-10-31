@@ -395,13 +395,38 @@ func main() {
 		[]int8{BALL_TAN,     BALL_DRKBLUE,BALL_WHITE,  BALL_TAN,     BALL_PINK},
 		make([]int8, 0, TUBE_CAPACITY),
 		make([]int8, 0, TUBE_CAPACITY),
+		make([]int8, 0, TUBE_CAPACITY),
+		// This level has no solution without the additional tube (tube 16).
 	}
 	if level732.CheckValid() != BALL_NONE { panic("level732 invalid") }
+
+	level764 := GameState{
+		[]int8{BALL_WHITE, BALL_DRKBLUE, BALL_ORANGE, BALL_ORANGE, BALL_PINK},
+		[]int8{BALL_DRKGREEN, BALL_TAN, BALL_NAVY, BALL_TAN, BALL_GREEN},
+		[]int8{BALL_TAN, BALL_NAVY, BALL_BLUE, BALL_TEAL, BALL_GREEN },
+		[]int8{BALL_BROWN, BALL_PURPLE, BALL_PURPLE, BALL_BLUE, BALL_BLUE },
+		[]int8{BALL_NAVY, BALL_ORANGE, BALL_YELLOW, BALL_DRKGREEN, BALL_RED },
+		[]int8{BALL_ORANGE, BALL_TAN, BALL_BROWN, BALL_GREEN, BALL_TEAL },
+		[]int8{BALL_PURPLE, BALL_YELLOW, BALL_WHITE, BALL_YELLOW, BALL_DRKBLUE},
+		[]int8{BALL_RED, BALL_DRKBLUE, BALL_TEAL, BALL_PURPLE, BALL_BROWN},
+
+		[]int8{BALL_DRKBLUE, BALL_BLUE,   BALL_RED, BALL_GREEN, BALL_DRKGREEN},
+		[]int8{BALL_NAVY, BALL_PURPLE, BALL_ORANGE, BALL_TAN, BALL_PINK},
+		[]int8{BALL_WHITE, BALL_YELLOW, BALL_BLUE, BALL_PINK, BALL_RED },
+		[]int8{BALL_GREEN,BALL_DRKBLUE, BALL_PINK, BALL_TEAL, BALL_RED},
+		[]int8{BALL_NAVY, BALL_YELLOW, BALL_PINK, BALL_BROWN, BALL_WHITE},
+		[]int8{BALL_DRKGREEN, BALL_WHITE, BALL_TEAL, BALL_DRKGREEN, BALL_BROWN},
+		make([]int8, 0, TUBE_CAPACITY),
+		make([]int8, 0, TUBE_CAPACITY),
+	}
+	if level764.CheckValid() != BALL_NONE { panic("level764 invalid") }
 
 	seenStates := make(map[uint64]struct{})
 	fmt.Println("Solving...")
 	_ = level578
-	solution, deepestRecursion := solve(level656, seenStates, 0)
+	_ = level656
+	_ = level732
+	solution, deepestRecursion := solve(level764, seenStates, 0)
 	if len(solution) == 0 {
 		fmt.Println("No solution!")
 	} else {
